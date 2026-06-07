@@ -234,20 +234,21 @@ document.addEventListener('DOMContentLoaded', function() {
         showSuccessMessage('文字貼上成功');
     });
 
-    wordsPerSectionInput.addEventListener('change', function() {
-        const value = parseInt(this.value);
+    function applyWordsPerSection() {
+        const value = parseInt(wordsPerSectionInput.value);
         if (value < 100) {
-            this.value = 100;
+            wordsPerSectionInput.value = 100;
             alert('每頁最少 100 字');
         } else if (value > 2000) {
-            this.value = 2000;
+            wordsPerSectionInput.value = 2000;
             alert('每頁最多 2000 字');
         }
+        if (originalText) createPages();
+    }
 
-        if (originalText) {
-            createPages();
-        }
-    });
+    wordsPerSectionInput.addEventListener('change', applyWordsPerSection);
+
+    document.getElementById('applySettings').addEventListener('click', applyWordsPerSection);
 
     prevPageButton.addEventListener('click', function() {
         if (currentPage > 0) {
