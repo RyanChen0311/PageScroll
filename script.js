@@ -85,13 +85,21 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDisplay();
     }
 
-    // 創建視窗（高度自動展開，不設內部卷軸）
+    // 視窗高度由每頁字數推算（代表可視範圍大小）
+    function getWindowHeight() {
+        const wps = parseInt(wordsPerSectionInput.value) || 500;
+        return Math.max(150, Math.min(600, Math.round(wps * 0.6)));
+    }
+
+    // 創建視窗（固定高度 + 內部卷軸，讓讀者可在視窗內捲動查看完整段落）
     function createWindows() {
+        const windowHeight = getWindowHeight();
         windowsContainer.innerHTML = '';
         pages.forEach((content, index) => {
             const wordCount = countWords(content);
             const win = document.createElement('div');
             win.className = 'window';
+            win.style.height = windowHeight + 'px';
             win.setAttribute('data-page', `第 ${index + 1} 頁`);
             win.setAttribute('data-word-count', `${wordCount} 字`);
 
@@ -250,4 +258,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 添加鍵盤事件監聽器
     document.addEventListener('keydown', handleKeyDown);
+
+    // 回到頂部按鈕
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() {
+        backToTop.classList.toggle('visible', window.scrollY > 300);
+    });
+    backToTop.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 }); 
