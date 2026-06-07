@@ -33,49 +33,52 @@ document.addEventListener('DOMContentLoaded', function() {
         return chineseChars + englishWords + numbers;
     }
 
-    // 依段落切分後，依字數上限將相鄰段落合組為一頁（不切斷段落）
+    // 分頁核心：先切出最小單位（段落→句子），
+    // 累積到「至少達到目標字數」後才切頁，確保每頁不低於設定字數
     function createPages() {
         if (!originalText) return;
 
         const text = originalText.trim();
         const wordsPerSection = parseInt(wordsPerSectionInput.value) || 500;
 
-        // 取得原始段落：優先雙換行，次選單換行，最後依句末標點
-        let rawSegments = text.split(/\n[ \t]*\n/).map(s => s.trim()).filter(Boolean);
+        // Step 1：取得語意最小單位
+        // 優先雙換行段落，次選單換行，最後依句末標點拆句
+        let units = text.split(/\n[ \t]*\n/).map(s => s.trim()).filter(Boolean);
 
-        if (rawSegments.length <= 1) {
-            rawSegments = text.split(/\n/).map(s => s.trim()).filter(Boolean);
+        if (units.length <= 1) {
+            units = text.split(/\n/).map(s => s.trim()).filter(Boolean);
         }
 
-        if (rawSegments.length <= 1) {
-            const flat = rawSegments[0] || text;
-            const parts = flat.split(/([。！？!?])/).filter(Boolean);
-            rawSegments = [];
-            let chunk = '';
-            for (let i = 0; i < parts.length; i++) {
-                chunk += parts[i];
-                if (/[。！？!?]/.test(parts[i]) && countWords(chunk) >= 80) {
-                    rawSegments.push(chunk.trim());
-                    chunk = '';
+        if (units.length <= 1) {
+            // 無換行的連續文字：以句末標點拆成最小句子單位
+            const flat = units[0] || text;
+            const parts = flat.split(/([。！？.!?])/).filter(Boolean);
+            units = [];
+            let sentence = '';
+            for (const part of parts) {
+                sentence += part;
+                if (/[。！？.!?]/.test(part)) {
+                    units.push(sentence.trim());
+                    sentence = '';
                 }
             }
-            if (chunk.trim()) rawSegments.push(chunk.trim());
+            if (sentence.trim()) units.push(sentence.trim());
         }
 
-        // 將相鄰段落合組，直到累積字數超過上限才開新頁
+        // Step 2：累積到「至少達到目標字數」再切頁
+        // 每頁字數 ≥ wordsPerSection（最後一頁除外）
         pages = [];
         let group = '';
-        let groupWordCount = 0;
+        let groupCount = 0;
 
-        for (const seg of rawSegments) {
-            const segCount = countWords(seg);
-            if (groupWordCount > 0 && groupWordCount + segCount > wordsPerSection) {
+        for (const unit of units) {
+            group += (group ? '\n\n' : '') + unit;
+            groupCount += countWords(unit);
+
+            if (groupCount >= wordsPerSection) {
                 pages.push(group.trim());
-                group = seg;
-                groupWordCount = segCount;
-            } else {
-                group += (group ? '\n\n' : '') + seg;
-                groupWordCount += segCount;
+                group = '';
+                groupCount = 0;
             }
         }
         if (group.trim()) pages.push(group.trim());
@@ -107,7 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
             contentDiv.className = 'window-content';
             contentDiv.textContent = content;
 
+            // 回到頂部按鈕（只在當前選取分頁顯示）
+            const topBtn = document.createElement('button');
+            topBtn.className = 'back-to-top';
+            topBtn.innerHTML = '&#8679;';
+            topBtn.setAttribute('aria-label', '回到頂部');
+            topBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
             win.appendChild(contentDiv);
+            win.appendChild(topBtn);
             windowsContainer.appendChild(win);
 
             win.addEventListener('click', () => {
@@ -258,13 +272,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 添加鍵盤事件監聽器
     document.addEventListener('keydown', handleKeyDown);
-
-    // 回到頂部按鈕
-    const backToTop = document.getElementById('backToTop');
-    window.addEventListener('scroll', function() {
-        backToTop.classList.toggle('visible', window.scrollY > 300);
-    });
-    backToTop.addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
 }); 
