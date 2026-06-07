@@ -33,83 +33,77 @@ document.addEventListener('DOMContentLoaded', function() {
         return chineseChars + englishWords + numbers;
     }
 
-    // 創建頁面
+    // 依段落切分後，依字數上限將相鄰段落合組為一頁（不切斷段落）
     function createPages() {
         if (!originalText) return;
-        
-        const wordsPerSection = parseInt(wordsPerSectionInput.value) || 500;
+
         const text = originalText.trim();
-        pages = [];
-        let currentPage = '';
-        let currentWordCount = 0;
-        
-        // 按段落分割文本
-        const paragraphs = text.split(/\n\s*\n/);
-        
-        for (const paragraph of paragraphs) {
-            const paragraphWordCount = countWords(paragraph);
-            
-            // 如果當前段落加上現有內容超過限制，且當前頁面不為空
-            if (currentWordCount + paragraphWordCount > wordsPerSection && currentPage !== '') {
-                pages.push(currentPage.trim());
-                currentPage = '';
-                currentWordCount = 0;
-            }
-            
-            // 如果單個段落超過限制，需要進一步分割
-            if (paragraphWordCount > wordsPerSection) {
-                // 按句子分割
-                const sentences = paragraph.split(/([。！？.!?])/g);
-                let currentSentence = '';
-                
-                for (let i = 0; i < sentences.length; i++) {
-                    const sentence = sentences[i];
-                    const sentenceWordCount = countWords(sentence);
-                    
-                    if (currentWordCount + sentenceWordCount > wordsPerSection && currentPage !== '') {
-                        pages.push(currentPage.trim());
-                        currentPage = '';
-                        currentWordCount = 0;
-                    }
-                    
-                    currentPage += sentence;
-                    currentWordCount += sentenceWordCount;
+        const wordsPerSection = parseInt(wordsPerSectionInput.value) || 500;
+
+        // 取得原始段落：優先雙換行，次選單換行，最後依句末標點
+        let rawSegments = text.split(/\n[ \t]*\n/).map(s => s.trim()).filter(Boolean);
+
+        if (rawSegments.length <= 1) {
+            rawSegments = text.split(/\n/).map(s => s.trim()).filter(Boolean);
+        }
+
+        if (rawSegments.length <= 1) {
+            const flat = rawSegments[0] || text;
+            const parts = flat.split(/([。！？!?])/).filter(Boolean);
+            rawSegments = [];
+            let chunk = '';
+            for (let i = 0; i < parts.length; i++) {
+                chunk += parts[i];
+                if (/[。！？!?]/.test(parts[i]) && countWords(chunk) >= 80) {
+                    rawSegments.push(chunk.trim());
+                    chunk = '';
                 }
+            }
+            if (chunk.trim()) rawSegments.push(chunk.trim());
+        }
+
+        // 將相鄰段落合組，直到累積字數超過上限才開新頁
+        pages = [];
+        let group = '';
+        let groupWordCount = 0;
+
+        for (const seg of rawSegments) {
+            const segCount = countWords(seg);
+            if (groupWordCount > 0 && groupWordCount + segCount > wordsPerSection) {
+                pages.push(group.trim());
+                group = seg;
+                groupWordCount = segCount;
             } else {
-                currentPage += paragraph + '\n\n';
-                currentWordCount += paragraphWordCount;
+                group += (group ? '\n\n' : '') + seg;
+                groupWordCount += segCount;
             }
         }
-        
-        // 添加最後一頁
-        if (currentPage.trim() !== '') {
-            pages.push(currentPage.trim());
-        }
-        
+        if (group.trim()) pages.push(group.trim());
+
+        currentPage = 0;
         createWindows();
         updateDisplay();
     }
 
-    // 創建視窗
+    // 創建視窗（高度自動展開，不設內部卷軸）
     function createWindows() {
         windowsContainer.innerHTML = '';
         pages.forEach((content, index) => {
             const wordCount = countWords(content);
-            const window = document.createElement('div');
-            window.className = 'window';
-            window.setAttribute('data-page', `第 ${index + 1} 頁`);
-            window.setAttribute('data-word-count', `${wordCount} 字`);
-            
+            const win = document.createElement('div');
+            win.className = 'window';
+            win.setAttribute('data-page', `第 ${index + 1} 頁`);
+            win.setAttribute('data-word-count', `${wordCount} 字`);
+
             const contentDiv = document.createElement('div');
             contentDiv.className = 'window-content';
             contentDiv.textContent = content;
-            
-            window.appendChild(contentDiv);
-            windowsContainer.appendChild(window);
 
-            // 添加點擊事件
-            window.addEventListener('click', () => {
-                setActiveWindow(window);
+            win.appendChild(contentDiv);
+            windowsContainer.appendChild(win);
+
+            win.addEventListener('click', () => {
+                setActiveWindow(win);
             });
         });
     }
@@ -188,34 +182,46 @@ document.addEventListener('DOMContentLoaded', function() {
         loadFile(e.target.files[0]);
     });
 
-    // 拖曳上傳
-    const uploadLabel = document.querySelector('.upload-label');
+    // 拖曳上傳（獨立拖放區）
+    const dropZone = document.getElementById('dropZone');
 
-    uploadLabel.addEventListener('dragover', function(e) {
+    dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         this.classList.add('drag-over');
     });
 
-    uploadLabel.addEventListener('dragleave', function() {
+    dropZone.addEventListener('dragleave', function() {
         this.classList.remove('drag-over');
     });
 
-    uploadLabel.addEventListener('drop', function(e) {
+    dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
         this.classList.remove('drag-over');
         loadFile(e.dataTransfer.files[0]);
+    });
+
+    // 貼上文字處理
+    const pasteArea = document.getElementById('pasteArea');
+    const pasteButton = document.getElementById('pasteButton');
+
+    pasteButton.addEventListener('click', function() {
+        const text = pasteArea.value.trim();
+        if (!text) return;
+        originalText = text;
+        createPages();
+        showSuccessMessage('文字貼上成功');
     });
 
     wordsPerSectionInput.addEventListener('change', function() {
         const value = parseInt(this.value);
         if (value < 100) {
             this.value = 100;
-            alert('每頁最少需要 100 字');
+            alert('每頁最少 100 字');
         } else if (value > 2000) {
             this.value = 2000;
             alert('每頁最多 2000 字');
         }
-        
+
         if (originalText) {
             createPages();
         }

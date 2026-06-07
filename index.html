@@ -9,25 +9,39 @@
 <body>
     <div class="container">
         <div class="controls">
-            <div class="file-upload">
-                <label for="fileInput" class="upload-label">
-                    <span class="upload-icon">📄</span>
-                    <span class="upload-text">拖曳或選擇 .txt 文件</span>
-                </label>
-                <input type="file" id="fileInput" accept=".txt">
+            <div class="input-section">
+                <div class="file-section">
+                    <div class="file-upload">
+                        <label for="fileInput" class="upload-label">
+                            <span class="upload-icon">📄</span>
+                            <span class="upload-text">選擇 .txt 檔案</span>
+                        </label>
+                        <input type="file" id="fileInput" accept=".txt">
+                    </div>
+                    <div class="drop-zone" id="dropZone">
+                        <span class="drop-icon">📂</span>
+                        <span>拖曳 .txt 檔案至此</span>
+                    </div>
+                </div>
+                <div class="paste-section">
+                    <textarea id="pasteArea" placeholder="直接貼上文章內容，再點擊「分頁切割」…"></textarea>
+                    <button id="pasteButton">分頁切割</button>
+                </div>
             </div>
-            <div class="settings">
-                <label for="wordsPerSection">每頁字數：</label>
-                <input type="number" id="wordsPerSection" value="500" min="100" max="2000">
-            </div>
-            <div class="page-info">0 / 0 頁</div>
-            <div class="navigation">
-                <button id="prevPage" disabled>上一頁</button>
-                <button id="nextPage" disabled>下一頁</button>
-            </div>
-            <div class="page-jump">
-                <input type="number" id="jumpToPage" placeholder="頁碼" min="1">
-                <button id="jumpButton">跳轉</button>
+            <div class="controls-row">
+                <div class="settings">
+                    <label for="wordsPerSection">每頁字數：</label>
+                    <input type="number" id="wordsPerSection" value="500" min="100" max="2000">
+                </div>
+                <div class="page-info">0 / 0 頁</div>
+                <div class="navigation">
+                    <button id="prevPage" disabled>上一頁</button>
+                    <button id="nextPage" disabled>下一頁</button>
+                </div>
+                <div class="page-jump">
+                    <input type="number" id="jumpToPage" placeholder="頁碼" min="1">
+                    <button id="jumpButton">跳轉</button>
+                </div>
             </div>
         </div>
         <div class="windows-container"></div>
@@ -35,4 +49,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-</html> 
+</html>

@@ -33,13 +33,26 @@ body {
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 15px;
+}
+
+/* 上傳區：左欄（按鈕＋拖放）+ 右欄（貼上） */
+.input-section {
+    display: flex;
+    gap: 15px;
+}
+
+.file-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 160px;
 }
 
 .file-upload {
     width: 100%;
-    max-width: 400px;
 }
 
 .upload-label {
@@ -59,12 +72,6 @@ body {
     background: #357abd;
 }
 
-.upload-label.drag-over {
-    background: #357abd;
-    outline: 2px dashed white;
-    outline-offset: -4px;
-}
-
 .upload-icon {
     font-size: 1.2em;
 }
@@ -73,12 +80,71 @@ input[type="file"] {
     display: none;
 }
 
+.drop-zone {
+    flex: 1;
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: #999;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    text-align: center;
+    min-height: 100px;
+}
+
+.drop-zone.drag-over {
+    background: #e8f0fe;
+    border-color: #357abd;
+    color: var(--primary-color);
+}
+
+.drop-icon {
+    font-size: 2em;
+}
+
+.paste-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 2;
+}
+
+#pasteArea {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-family: inherit;
+    font-size: 0.95em;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 150px;
+}
+
+#pasteArea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* 設定列 */
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 .settings {
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 100%;
-    max-width: 400px;
 }
 
 .settings label {
@@ -86,7 +152,7 @@ input[type="file"] {
 }
 
 .settings input {
-    flex: 1;
+    width: 80px;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: var(--border-radius);
@@ -105,8 +171,6 @@ input[type="file"] {
 .page-jump {
     display: flex;
     gap: 10px;
-    width: 100%;
-    max-width: 400px;
 }
 
 button {
@@ -139,16 +203,13 @@ input[type="number"] {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
-    padding-right: 10px;
 }
 
 .window {
     background: white;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
-    height: 300px;
+    min-height: 150px;
     position: relative;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -189,31 +250,12 @@ input[type="number"] {
 }
 
 .window-content {
-    height: 100%;
-    overflow-y: auto;
     padding: 20px;
     font-size: 1.1em;
     line-height: 1.8;
     white-space: pre-wrap;
 }
 
-.window-content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.window-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.window-content::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.window-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
 
 .success-message {
     position: fixed;
@@ -241,6 +283,10 @@ input[type="number"] {
 
     .controls {
         padding: 15px;
+    }
+
+    .input-section {
+        flex-direction: column;
     }
 
     .settings {
