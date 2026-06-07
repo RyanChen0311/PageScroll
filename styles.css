@@ -59,6 +59,12 @@ body {
     background: #357abd;
 }
 
+.upload-label.drag-over {
+    background: #357abd;
+    outline: 2px dashed white;
+    outline-offset: -4px;
+}
+
 .upload-icon {
     font-size: 1.2em;
 }
@@ -188,6 +194,7 @@ input[type="number"] {
     padding: 20px;
     font-size: 1.1em;
     line-height: 1.8;
+    white-space: pre-wrap;
 }
 
 .window-content::-webkit-scrollbar {

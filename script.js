@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'window-content';
-            contentDiv.innerHTML = content;
+            contentDiv.textContent = content;
             
             window.appendChild(contentDiv);
             windowsContainer.appendChild(window);
@@ -172,18 +172,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function loadFile(file) {
+        if (!file || !file.name.endsWith('.txt')) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalText = e.target.result;
+            createPages();
+            showSuccessMessage(`${file.name} 讀取成功`);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
     // 事件監聽器
     fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                originalText = e.target.result;
-                createPages();
-                showSuccessMessage(`${file.name} 讀取成功`);
-            };
-            reader.readAsText(file, 'UTF-8');
-        }
+        loadFile(e.target.files[0]);
+    });
+
+    // 拖曳上傳
+    const uploadLabel = document.querySelector('.upload-label');
+
+    uploadLabel.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    uploadLabel.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+    });
+
+    uploadLabel.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        loadFile(e.dataTransfer.files[0]);
     });
 
     wordsPerSectionInput.addEventListener('change', function() {
